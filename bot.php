@@ -16,8 +16,13 @@ if (!is_null($events['events'])) {
 			// Get replyToken
 			$replyToken = $event['replyToken'];
             $replyText = $text;
+            $shouldReply = false;
             if($text == 'พ่อวินชื่อไร'){
                 $replyText = 'เจริญชัยไงครับ';
+                $shouldReply = true;
+            }else if($text == 'แม่วินชื่อไร'){
+                $replyText = 'วัลลดาไงสัส';
+                $shouldReply = true;
             }
 
 			// Build message to reply back
@@ -29,30 +34,26 @@ if (!is_null($events['events'])) {
 			// Make a POST Request to Messaging API to reply to sender
 			$url = 'https://api.line.me/v2/bot/message/reply';
             $data = [];
-            if($event['source']['type'] == 'room'){
-                $data = [
-                    'to' => $event['source']['roomId'],
-                    'messages' => [$messages],
-                ];    
-            }else{
+            if($shouldReply){
                 $data = [
                     'replyToken' => $replyToken,
                     'messages' => [$messages],
                 ];
+            
+                $post = json_encode($data);
+                $headers = array('Content-Type: application/json', 'Authorization: Bearer ' . $access_token);
+
+                $ch = curl_init($url);
+                curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+                curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+                curl_setopt($ch, CURLOPT_POSTFIELDS, $post);
+                curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+                curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+                $result = curl_exec($ch);
+                curl_close($ch);
+
+                echo $result . "\r\n";
             }
-			$post = json_encode($data);
-			$headers = array('Content-Type: application/json', 'Authorization: Bearer ' . $access_token);
-
-			$ch = curl_init($url);
-			curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
-			curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-			curl_setopt($ch, CURLOPT_POSTFIELDS, $post);
-			curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-			curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
-			$result = curl_exec($ch);
-			curl_close($ch);
-
-			echo $result . "\r\n";
 		}
 	}
 }
